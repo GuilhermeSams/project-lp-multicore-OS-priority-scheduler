@@ -1,0 +1,8 @@
+[package]
+name = "escalonador-processos"
+version = "0.1.0"
+description = "Simulador avançado de escalonamento de processos com múltiplos núcleos e prevenção de deadlocks"
+license = "MIT"
+
+[dependencies]
+rand = { version = "0.8", features = ["small_rng"] }

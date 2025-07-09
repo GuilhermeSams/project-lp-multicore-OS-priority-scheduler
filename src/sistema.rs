@@ -1,0 +1,363 @@
+//! Módulo principal que implementa a lógica de escalonamento de processos
+
+use std::collections::{VecDeque, HashMap};
+use std::fmt;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Recurso {
+    Impressora,
+    Scanner,
+    Disco,
+    Memoria(u32), // Quantidade em MB
+}
+
+impl fmt::Display for Recurso {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Recurso::Impressora => write!(f, "Impressora"),
+            Recurso::Scanner => write!(f, "Scanner"),
+            Recurso::Disco => write!(f, "Disco"),
+            Recurso::Memoria(mb) => write!(f, "Memória({}MB)", mb),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum EstadoProcesso {
+    Pronto,
+    Executando,
+    Bloqueado,
+    Concluido,
+}
+
+impl fmt::Display for EstadoProcesso {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            EstadoProcesso::Pronto => write!(f, "Pronto"),
+            EstadoProcesso::Executando => write!(f, "Executando"),
+            EstadoProcesso::Bloqueado => write!(f, "Bloqueado"),
+            EstadoProcesso::Concluido => write!(f, "Concluído"),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Processo {
+    pub id: u32,
+    pub prioridade: i32,
+    pub tempo_total: u32,
+    pub tempo_restante: u32,
+    pub tempo_chegada: u32,
+    pub estado: EstadoProcesso,
+    pub recursos_alocados: HashMap<Recurso, u32>,
+    pub recursos_necessarios: HashMap<Recurso, u32>,
+}
+
+impl Processo {
+    pub fn new(id: u32, tempo_total: u32, prioridade: i32) -> Self {
+        Processo {
+            id,
+            prioridade,
+            tempo_total,
+            tempo_restante: tempo_total,
+            tempo_chegada: 0,
+            estado: EstadoProcesso::Pronto,
+            recursos_alocados: HashMap::new(),
+            recursos_necessarios: HashMap::new(),
+        }
+    }
+
+    pub fn necessita_recurso(mut self, recurso: Recurso, quantidade: u32) -> Self {
+        self.recursos_necessarios.insert(recurso, quantidade);
+        self
+    }
+}
+
+#[derive(Debug)]
+pub struct Nucleo {
+    pub id: u32,
+    pub processo_atual: Option<Processo>,
+    pub tempo_ocioso: u32,
+}
+
+impl Nucleo {
+    fn new(id: u32) -> Self {
+        Nucleo {
+            id,
+            processo_atual: None,
+            tempo_ocioso: 0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AlgoritmoEscalonamento {
+    RoundRobin,
+    Prioridade,
+    ShortestJobFirst,
+}
+
+impl fmt::Display for AlgoritmoEscalonamento {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            AlgoritmoEscalonamento::RoundRobin => write!(f, "Round Robin"),
+            AlgoritmoEscalonamento::Prioridade => write!(f, "Por Prioridade"),
+            AlgoritmoEscalonamento::ShortestJobFirst => write!(f, "Shortest Job First"),
+        }
+    }
+}
+
+/// Sistema principal que gerencia todos os componentes
+pub struct Sistema {
+    pub nucleos: Vec<Nucleo>,
+    pub processos: VecDeque<Processo>,
+    pub processos_bloqueados: Vec<Processo>,
+    pub recursos_disponiveis: HashMap<Recurso, u32>,
+    pub algoritmo: AlgoritmoEscalonamento,
+    pub tempo_global: u32,
+    pub quantum: u32,
+}
+
+impl Sistema {
+    pub fn new(num_nucleos: u32, quantum: u32, algoritmo: AlgoritmoEscalonamento) -> Self {
+        let mut nucleos = Vec::with_capacity(num_nucleos as usize);
+        for i in 0..num_nucleos {
+            nucleos.push(Nucleo::new(i));
+        }
+
+        let recursos = HashMap::from([
+            (Recurso::Impressora, 2),
+            (Recurso::Scanner, 1),
+            (Recurso::Disco, 3),
+            (Recurso::Memoria(1024), 8), // 8GB total
+        ]);
+
+        Sistema {
+            nucleos,
+            processos: VecDeque::new(),
+            processos_bloqueados: Vec::new(),
+            recursos_disponiveis: recursos,
+            algoritmo,
+            tempo_global: 0,
+            quantum,
+        }
+    }
+
+    pub fn adicionar_processo(&mut self, processo: Processo) {
+        let mut processo = processo;
+        processo.estado = EstadoProcesso::Pronto;
+        self.processos.push_back(processo);
+    }
+
+    /// Verifica se existe algum deadlock no sistema usando o algoritmo do banqueiro
+    pub fn verificar_deadlock(&self) -> bool {
+        let mut trabalho = self.recursos_disponiveis.clone();
+        let mut processos = self.processos.iter().chain(self.processos_bloqueados.iter());
+
+        let mut finish = HashMap::new();
+        for p in processos.clone() {
+            finish.insert(p.id, false);
+        }
+
+        loop {
+            let mut encontrou = false;
+
+            for p in processos.clone() {
+                if !finish[&p.id] {
+                    let mut recursos_suficientes = true;
+
+                    for (recurso, &necessario) in &p.recursos_necessarios {
+                        let disponivel = trabalho.get(recurso).unwrap_or(&0);
+                        if necessario > *disponivel {
+                            recursos_suficientes = false;
+                            break;
+                        }
+                    }
+
+                    if recursos_suficientes {
+                        encontrou = true;
+                        finish.insert(p.id, true);
+
+                        for (recurso, &alocado) in &p.recursos_alocados {
+                            *trabalho.entry(*recurso).or_insert(0) += alocado;
+                        }
+                    }
+                }
+            }
+
+            if !encontrou {
+                break;
+            }
+        }
+
+        finish.values().any(|&f| !f)
+    }
+
+    fn alocar_recursos(&mut self, processo: &Processo) -> bool {
+        for (recurso, &necessario) in &processo.recursos_necessarios {
+            let disponivel = self.recursos_disponiveis.get(recurso).unwrap_or(&0);
+            if necessario > *disponivel {
+                return false;
+            }
+        }
+
+        for (recurso, &necessario) in &processo.recursos_necessarios {
+            *self.recursos_disponiveis.get_mut(recurso).unwrap() -= necessario;
+        }
+
+        true
+    }
+
+    fn liberar_recursos(&mut self, processo: &Processo) {
+        for (recurso, &alocado) in &processo.recursos_alocados {
+            *self.recursos_disponiveis.entry(*recurso).or_insert(0) += alocado;
+        }
+    }
+
+    pub fn escalonar(&mut self) {
+        // Verificação de deadlock (sem problemas de borrowing)
+        if self.tempo_global % 10 == 0 && self.verificar_deadlock() {
+            println!("[!] Deadlock detectado no tempo {}! Tomando ações corretivas...", self.tempo_global);
+            if let Some(processo) = self.processos.pop_front() {
+                println!("[!] Processo {} terminado para resolver deadlock", processo.id);
+                self.liberar_recursos(&processo);
+            }
+        }
+
+        // Fase 1: Processar núcleos
+        let mut processos_concluidos = Vec::new();
+        let mut processos_preemptados = Vec::new();
+
+        for nucleo in &mut self.nucleos {
+            if let Some(processo) = nucleo.processo_atual.take() {
+                if processo.tempo_restante == 0 {
+                    processos_concluidos.push(processo);
+                } else {
+                    let mut processo = processo;
+                    processo.tempo_restante -= 1;
+
+                    if self.algoritmo == AlgoritmoEscalonamento::RoundRobin &&
+                        (self.tempo_global - processo.tempo_chegada) % self.quantum == 0 {
+                        processo.estado = EstadoProcesso::Pronto;
+                        processos_preemptados.push(processo);
+                    } else {
+                        processo.estado = EstadoProcesso::Executando;
+                        nucleo.processo_atual = Some(processo);
+                    }
+                }
+            }
+        }
+
+        // Liberar recursos fora do loop dos núcleos
+        for processo in processos_concluidos {
+            println!("[T={}] Processo {} concluído", self.tempo_global, processo.id);
+            self.liberar_recursos(&processo);
+        }
+
+        // Recolocar processos preemptados
+        for processo in processos_preemptados {
+            println!("[T={}] Processo {} preemptado", self.tempo_global, processo.id);
+            self.processos.push_back(processo);
+        }
+
+        // Fase 2: Atribuir novos processos
+        let nucleos_ociosos: Vec<_> = self.nucleos.iter_mut()
+            .filter(|n| n.processo_atual.is_none())
+            .collect();
+
+        for nucleo in nucleos_ociosos {
+            // Separamos a escolha do processo da alocação
+            let processo_escolhido = {
+                let processo = self.escolher_proximo_processo();
+                processo.cloned()
+            };
+
+            if let Some(processo) = processo_escolhido {
+                let pode_alocar = processo.recursos_necessarios.iter()
+                    .all(|(r, &q)| self.recursos_disponiveis.get(r).map_or(false, |&d| d >= q));
+
+                if pode_alocar {
+                    for (recurso, &quantidade) in &processo.recursos_necessarios {
+                        *self.recursos_disponiveis.get_mut(recurso).unwrap() -= quantidade;
+                    }
+
+                    let mut processo = processo;
+                    processo.estado = EstadoProcesso::Executando;
+                    nucleo.processo_atual = Some(processo);
+                    println!("[T={}] Núcleo {}: Processo {} iniciado",
+                             self.tempo_global, nucleo.id, nucleo.processo_atual.as_ref().unwrap().id);
+                } else {
+                    let mut processo = processo;
+                    processo.estado = EstadoProcesso::Bloqueado;
+                    self.processos_bloqueados.push(processo);
+                    println!("[T={}] Processo {} bloqueado", self.tempo_global, processo.id);
+                }
+            }
+        }
+
+        // Fase 3: Verificar processos bloqueados
+        let mut i = 0;
+        while i < self.processos_bloqueados.len() {
+            let pode_alocar = self.processos_bloqueados[i].recursos_necessarios.iter()
+                .all(|(r, &q)| self.recursos_disponiveis.get(r).map_or(false, |&d| d >= q));
+
+            if pode_alocar {
+                let processo = self.processos_bloqueados.remove(i);
+                println!("[T={}] Processo {} desbloqueado", self.tempo_global, processo.id);
+                self.processos.push_front(processo);
+            } else {
+                i += 1;
+            }
+        }
+
+        self.tempo_global += 1;
+    }
+
+
+    fn pode_alocar_recursos(&self, processo: &Processo) -> bool {
+        processo.recursos_necessarios.iter()
+            .all(|(r, &q)| self.recursos_disponiveis.get(r).map_or(false, |&d| d >= q))
+    }
+
+    fn escolher_proximo_processo(&self) -> Option<&Processo> {
+        match self.algoritmo {
+            AlgoritmoEscalonamento::RoundRobin => self.processos.front(),
+            AlgoritmoEscalonamento::Prioridade => {
+                self.processos.iter().max_by_key(|p| p.prioridade)
+            },
+            AlgoritmoEscalonamento::ShortestJobFirst => {
+                self.processos.iter().min_by_key(|p| p.tempo_restante)
+            },
+        }
+    }
+
+    pub fn executar(&mut self, passos: u32) {
+        println!("Iniciando sistema com {} núcleos, algoritmo {}, quantum {}",
+                 self.nucleos.len(), self.algoritmo, self.quantum);
+
+        for _ in 0..passos {
+            if self.processos.is_empty() && self.processos_bloqueados.is_empty() &&
+                self.nucleos.iter().all(|n| n.processo_atual.is_none()) {
+                println!("Todos os processos foram concluídos!");
+                break;
+            }
+
+            self.escalonar();
+        }
+
+        println!("Simulação concluída no tempo {}", self.tempo_global);
+        self.mostrar_estatisticas();
+    }
+
+    pub fn mostrar_estatisticas(&self) {
+        println!("\n=== Estatísticas ===");
+        for nucleo in &self.nucleos {
+            println!("Núcleo {}: tempo ocioso = {}", nucleo.id, nucleo.tempo_ocioso);
+        }
+
+        println!("\nRecursos disponíveis:");
+        for (recurso, quantidade) in &self.recursos_disponiveis {
+            println!("  {}: {}", recurso, quantidade);
+        }
+    }
+}
