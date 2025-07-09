@@ -152,7 +152,7 @@ impl Sistema {
     /// Verifica se existe algum deadlock no sistema usando o algoritmo do banqueiro
     pub fn verificar_deadlock(&self) -> bool {
         let mut trabalho = self.recursos_disponiveis.clone();
-        let mut processos = self.processos.iter().chain(self.processos_bloqueados.iter());
+        let processos = self.processos.iter().chain(self.processos_bloqueados.iter());
 
         let mut finish = HashMap::new();
         for p in processos.clone() {
@@ -257,42 +257,77 @@ impl Sistema {
         // Recolocar processos preemptados
         for processo in processos_preemptados {
             println!("[T={}] Processo {} preemptado", self.tempo_global, processo.id);
-            self.processos.push_back(processo);
+            // Liberar recursos do processo preemptado
+            self.liberar_recursos(&processo);
+            // Criar uma cópia sem recursos alocados para a fila
+            let mut processo_sem_recursos = processo;
+            processo_sem_recursos.recursos_alocados.clear();
+            self.processos.push_back(processo_sem_recursos);
         }
 
         // Fase 2: Atribuir novos processos
-        let nucleos_ociosos: Vec<_> = self.nucleos.iter_mut()
-            .filter(|n| n.processo_atual.is_none())
-            .collect();
-
-        for nucleo in nucleos_ociosos {
-            // Separamos a escolha do processo da alocação
-            let processo_escolhido = {
-                let processo = self.escolher_proximo_processo();
-                processo.cloned()
-            };
-
-            if let Some(processo) = processo_escolhido {
+        let mut processos_para_atribuir = Vec::new();
+        
+        // Primeiro, coletamos os processos que podem ser atribuídos
+        for _ in 0..self.nucleos.len() {
+            if let Some(processo) = self.escolher_proximo_processo() {
                 let pode_alocar = processo.recursos_necessarios.iter()
                     .all(|(r, &q)| self.recursos_disponiveis.get(r).map_or(false, |&d| d >= q));
-
+                
                 if pode_alocar {
-                    for (recurso, &quantidade) in &processo.recursos_necessarios {
-                        *self.recursos_disponiveis.get_mut(recurso).unwrap() -= quantidade;
-                    }
-
-                    let mut processo = processo;
-                    processo.estado = EstadoProcesso::Executando;
-                    nucleo.processo_atual = Some(processo);
-                    println!("[T={}] Núcleo {}: Processo {} iniciado",
-                             self.tempo_global, nucleo.id, nucleo.processo_atual.as_ref().unwrap().id);
+                    processos_para_atribuir.push(processo.clone());
+                    // Remover o processo da fila
+                    self.processos.pop_front();
                 } else {
-                    let mut processo = processo;
-                    processo.estado = EstadoProcesso::Bloqueado;
-                    self.processos_bloqueados.push(processo);
-                    println!("[T={}] Processo {} bloqueado", self.tempo_global, processo.id);
+                    // Processo não pode ser alocado, vamos para o próximo
+                    break;
                 }
+            } else {
+                break;
             }
+        }
+
+        // Agora atribuímos os processos aos núcleos
+        let mut processo_index = 0;
+        for nucleo in &mut self.nucleos {
+            if nucleo.processo_atual.is_none() && processo_index < processos_para_atribuir.len() {
+                let mut processo = processos_para_atribuir[processo_index].clone();
+                
+                // Alocar recursos com verificação de segurança
+                for (recurso, &quantidade) in &processo.recursos_necessarios {
+                    if let Some(disponivel) = self.recursos_disponiveis.get_mut(recurso) {
+                        if *disponivel >= quantidade {
+                            *disponivel -= quantidade;
+                            // Mover recursos para recursos_alocados
+                            processo.recursos_alocados.insert(*recurso, quantidade);
+                        } else {
+                            // Não há recursos suficientes, não alocar
+                            continue;
+                        }
+                    }
+                }
+
+                processo.estado = EstadoProcesso::Executando;
+                nucleo.processo_atual = Some(processo);
+                println!("[T={}] Núcleo {}: Processo {} iniciado",
+                         self.tempo_global, nucleo.id, nucleo.processo_atual.as_ref().unwrap().id);
+                
+                processo_index += 1;
+            }
+        }
+
+        // Processos que não puderam ser atribuídos voltam para a fila
+        for processo in processos_para_atribuir.into_iter().skip(processo_index) {
+            let processo_id = processo.id;
+            let mut processo = processo;
+            processo.estado = EstadoProcesso::Bloqueado;
+            // Liberar recursos se houver algum alocado
+            if !processo.recursos_alocados.is_empty() {
+                self.liberar_recursos(&processo);
+                processo.recursos_alocados.clear();
+            }
+            self.processos_bloqueados.push(processo);
+            println!("[T={}] Processo {} bloqueado", self.tempo_global, processo_id);
         }
 
         // Fase 3: Verificar processos bloqueados
