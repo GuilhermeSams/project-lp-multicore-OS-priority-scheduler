@@ -116,6 +116,7 @@ pub struct Sistema {
     pub algoritmo: AlgoritmoEscalonamento,
     pub tempo_global: u32,
     pub quantum: u32,
+    pub taxa_chegada_processos: u32,
 }
 
 impl Sistema {
@@ -140,6 +141,7 @@ impl Sistema {
             algoritmo,
             tempo_global: 0,
             quantum,
+            taxa_chegada_processos: 20, // padrão
         }
     }
 
@@ -394,5 +396,52 @@ impl Sistema {
         for (recurso, quantidade) in &self.recursos_disponiveis {
             println!("  {}: {}", recurso, quantidade);
         }
+    }
+
+    pub fn mostrar_estatisticas_detalhadas(&self) {
+        println!("\n=== ESTATÍSTICAS DETALHADAS ===");
+        println!("Tempo global: {}", self.tempo_global);
+        println!("Algoritmo: {}", self.algoritmo);
+        println!("Quantum: {}", self.quantum);
+        println!("Taxa de chegada: {} processos/segundo", self.taxa_chegada_processos);
+        
+        println!("\n=== NÚCLEOS ===");
+        for nucleo in &self.nucleos {
+            let status = if nucleo.processo_atual.is_some() {
+                format!("Executando P{}", nucleo.processo_atual.as_ref().unwrap().id)
+            } else {
+                "Ocioso".to_string()
+            };
+            println!("Núcleo {}: {} (tempo ocioso: {})", nucleo.id, status, nucleo.tempo_ocioso);
+        }
+        
+        println!("\n=== FILAS DE PROCESSOS ===");
+        println!("Prontos: {} processos", self.processos.len());
+        for (i, processo) in self.processos.iter().take(5).enumerate() {
+            println!("  {}. P{} (prioridade: {}, tempo restante: {})", 
+                     i+1, processo.id, processo.prioridade, processo.tempo_restante);
+        }
+        if self.processos.len() > 5 {
+            println!("  ... e mais {} processos", self.processos.len() - 5);
+        }
+        
+        println!("Bloqueados: {} processos", self.processos_bloqueados.len());
+        for (i, processo) in self.processos_bloqueados.iter().take(3).enumerate() {
+            println!("  {}. P{} (prioridade: {}, tempo restante: {})", 
+                     i+1, processo.id, processo.prioridade, processo.tempo_restante);
+        }
+        if self.processos_bloqueados.len() > 3 {
+            println!("  ... e mais {} processos", self.processos_bloqueados.len() - 3);
+        }
+        
+        println!("\n=== RECURSOS DISPONÍVEIS ===");
+        for (recurso, quantidade) in &self.recursos_disponiveis {
+            println!("  {}: {}", recurso, quantidade);
+        }
+    }
+
+    pub fn escalonar_interativo(&mut self) {
+        // Versão simplificada do escalonar para modo interativo
+        self.escalonar();
     }
 }
