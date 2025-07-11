@@ -1,7 +1,6 @@
 //! Módulo com exemplos pré-configurados para testar o sistema
 
 use crate::sistema::{Sistema, Processo, Recurso, AlgoritmoEscalonamento};
-use std::collections::HashMap;
 use rand::Rng;
 use rand::thread_rng;
 
@@ -29,9 +28,12 @@ pub fn exemplo_prioridade() -> Sistema {
 pub fn exemplo_deadlock() -> Sistema {
     let mut sistema = Sistema::new(2, 3, AlgoritmoEscalonamento::RoundRobin);
 
-    // Configura recursos limitados
+    // Configura recursos limitados (substitui os valores padrão)
+    sistema.recursos_disponiveis.clear();
     sistema.recursos_disponiveis.insert(Recurso::Impressora, 1);
     sistema.recursos_disponiveis.insert(Recurso::Scanner, 1);
+    sistema.recursos_disponiveis.insert(Recurso::Disco, 3);
+    sistema.recursos_disponiveis.insert(Recurso::Memoria(1024), 8);
 
     // Processo 1: precisa de impressora e depois scanner
     sistema.adicionar_processo(
