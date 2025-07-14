@@ -1,0 +1,196 @@
+===============================================================================
+                    SIMULADOR DE ESCALONAMENTO DE PROCESSOS
+                           Versão 2.0 - Interativo
+==============================================================================================================================================================
+                                COMO EXECUTAR
+===============================================================================
+
+1. Certifique-se de ter o Rust instalado (https://rustup.rs/)
+2. Abra o terminal na pasta do projeto
+3 Execute: cargo update
+4. Execute: cargo run
+5. Siga as instruções na tela para configurar o sistema
+
+===============================================================================
+                            CONFIGURAÇÃO INICIAL
+===============================================================================
+
+O programa pedirá as seguintes configurações:
+
+1. NÚMERO DE NÚCLEOS (1-16):
+   - Recomendado: 4 núcleos para começar
+   - Exemplo: 4
+
+2. ALGORITMO DE ESCALONAMENTO:
+   - 1 = Round Robin (recomendado para iniciantes)
+   - 2 = Por Prioridade
+   - 3 = Shortest Job First
+   - Exemplo: 1
+
+3. QUANTUM (1-10) - apenas para Round Robin:
+   - Recomendado: 3
+   - Exemplo: 3
+
+4. TAXA DE CHEGADA DE PROCESSOS (1-100 por segundo):
+   - Recomendado: 20 para começar
+   - Exemplo: 20
+
+EXEMPLO DE CONFIGURAÇÃO COMPLETA:
+Número de núcleos (1-16): 4
+Opção (1-3): 1
+Quantum (1-10): 3
+Taxa de chegada de processos (1-100 por segundo): 20
+
+===============================================================================
+                            COMANDOS DISPONÍVEIS
+===============================================================================
+
+Durante a execução, você pode usar os seguintes comandos:
+
+ENTER: Continua a simulação normalmente
+q: Sai do simulador
+s: Mostra estatísticas detalhadas do sistema
+p: Pausa ou continua a simulação
+a: Adiciona um processo manualmente
+
+IMPORTANTE: Digite q para sair.
+IMPORTANTE: Digite s para ver estatísticas detalhadas.
+IMPORTANTE: Digite p para pausar/continuar.
+IMPORTANTE: Digite a para adicionar um processo manualmente.
+
+===============================================================================
+                            ADICIONANDO PROCESSOS
+===============================================================================
+
+Quando você digitar 'a', o sistema pedirá:
+
+1. TEMPO DE EXECUÇÃO (1-30):
+   - Quanto tempo o processo vai rodar
+   - Exemplo: 10
+
+2. PRIORIDADE (1-10):
+   - Quanto maior, mais prioridade
+   - Exemplo: 7
+
+3. MEMÓRIA NECESSÁRIA (0-4):
+   - Quantidade de blocos de memória de 1024MB
+   - Exemplo: 2
+
+EXEMPLO DE PROCESSO MANUAL:
+Tempo de execução (1-30): 10
+Prioridade (1-10): 7
+Memória necessária (0-4): 2
+Processo 501 adicionado com sucesso!
+
+===============================================================================
+                            O QUE OBSERVAR
+===============================================================================
+
+STATUS EM TEMPO REAL:
+[T=100] Prontos: 61 | Executando: 4 | Bloqueados: 7 | Total: 100
+
+- Prontos: Processos aguardando para executar
+- Executando: Processos atualmente nos núcleos
+- Bloqueados: Processos aguardando recursos
+- Total: Total de processos criados
+
+EVENTOS IMPORTANTES:
+- [T=X] Processo Y iniciado: Processo começa a executar
+- [T=X] Processo Y preemptado: Processo é interrompido pelo quantum
+- [T=X] Processo Y concluído: Processo termina sua execução
+- [T=X] Processo Y bloqueado: Processo aguarda recursos
+- [!] Deadlock detectado: Sistema detecta e resolve travamento
+
+===============================================================================
+                            ALGORITMOS DISPONÍVEIS
+===============================================================================
+
+1. ROUND ROBIN:
+   - Cada processo executa por um tempo fixo (quantum)
+   - Justo e previsível
+   - Bom para sistemas de tempo compartilhado
+
+2. POR PRIORIDADE:
+   - Processos com maior prioridade executam primeiro
+   - Pode causar starvation (processos de baixa prioridade nunca executam)
+   - Bom para sistemas em tempo real
+
+3. SHORTEST JOB FIRST:
+   - Processos mais curtos executam primeiro
+   - Minimiza tempo de espera médio
+   - Requer conhecimento prévio do tempo de execução
+
+===============================================================================
+                            RECURSOS DO SISTEMA
+===============================================================================
+
+O simulador gerencia os seguintes recursos:
+- Impressora: 2 unidades
+- Scanner: 1 unidade  
+- Disco: 3 unidades
+- Memória: 8 blocos de 1024MB cada
+
+Processos podem solicitar esses recursos, e o sistema gerencia a alocação
+automaticamente, detectando e resolvendo deadlocks quando necessário.
+
+===============================================================================
+                            DICAS DE USO
+===============================================================================
+
+1. COMEÇE SIMPLES:
+   - Use 4 núcleos e Round Robin
+   - Taxa de chegada baixa (10-20) para observar melhor
+
+2. EXPERIMENTE DIFERENTES CONFIGURAÇÕES:
+   - Teste diferentes algoritmos
+   - Aumente a taxa de chegada para ver como o sistema se comporta sob carga
+   - Adicione processos manualmente para testar cenários específicos
+
+3. OBSERVE OS PADRÕES:
+   - Como os processos são distribuídos entre os núcleos
+   - Como o quantum afeta a preempção
+   - Como a prioridade influencia a execução
+   - Como os recursos são alocados e liberados
+
+4. USE AS ESTATÍSTICAS:
+   - Digite 's' regularmente para ver o estado detalhado
+   - Observe como as filas mudam ao longo do tempo
+   - Monitore o uso de recursos
+
+===============================================================================
+                            EXEMPLOS DE TESTE
+===============================================================================
+
+TESTE 1 - SISTEMA BÁSICO:
+Configuração: 2 núcleos, Round Robin, quantum 3, taxa 10
+Observe: Como os processos alternam entre os núcleos
+
+TESTE 2 - ALTA CARGA:
+Configuração: 4 núcleos, Round Robin, quantum 2, taxa 50
+Observe: Como o sistema se comporta com muitos processos
+
+TESTE 3 - PRIORIDADE:
+Configuração: 2 núcleos, Por Prioridade, taxa 15
+Adicione processos manuais com diferentes prioridades
+Observe: Como a prioridade afeta a execução
+
+TESTE 4 - DEADLOCK:
+Configuração: 2 núcleos, Round Robin, taxa 5
+Adicione processos que precisam dos mesmos recursos
+Observe: Como o sistema detecta e resolve deadlocks
+
+===============================================================================
+                            SOLUÇÃO DE PROBLEMAS
+===============================================================================
+
+PROBLEMA: Sistema muito lento
+SOLUÇÃO: Reduza a taxa de chegada de processos
+
+PROBLEMA: Muitos processos bloqueados
+SOLUÇÃO: Aumente a quantidade de recursos ou reduza a taxa de chegada
+
+PROBLEMA: Deadlocks frequentes
+SOLUÇÃO: O sistema resolve automaticamente, mas você pode reduzir a taxa de chegada
+
+PROBLEMA: Não consigo ver as estatísticas
+SOLUÇÃO: Digite 's' e aguarde a exibição completa
