@@ -1,0 +1,54 @@
+# Nome do workflow que aparecerá na aba "Actions" do GitHub
+name: Deploy mdBook site to Pages
+
+# Gatilho: rodar sempre que houver um push na branch 'master'
+on:
+  push:
+    branches: ["master"]
+
+# Permissões necessárias para o job de deploy
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Evitar que workflows redundantes rodem ao mesmo tempo
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+# O trabalho a ser feito
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Clona o seu repositório para o ambiente de execução
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # 2. Instala o mdBook
+      - name: Install mdBook
+        run: |
+          mkdir mdbook
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.21/mdbook-v0.4.21-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
+          echo `pwd`/mdbook >> $GITHUB_PATH
+
+      # 3. Roda o comando para construir o site
+      #    Certifique-se que o caminho 'wiki' está correto
+      - name: Build mdBook
+        run: mdbook build wiki
+
+      # 4. Prepara a pasta de build para ser publicada
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # O caminho para a pasta que o mdBook gerou
+          path: './wiki/book'
+
+      # 5. Publica o site no GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
