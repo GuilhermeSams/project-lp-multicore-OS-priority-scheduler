@@ -27,7 +27,7 @@ jobs:
     steps:
       # 1. Clona o seu repositório para o ambiente de execução
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. Instala o mdBook
       - name: Install mdBook
@@ -43,7 +43,7 @@ jobs:
 
       # 4. Prepara a pasta de build para ser publicada
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           # O caminho para a pasta que o mdBook gerou
           path: './wiki/book'
@@ -51,4 +51,4 @@ jobs:
       # 5. Publica o site no GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
