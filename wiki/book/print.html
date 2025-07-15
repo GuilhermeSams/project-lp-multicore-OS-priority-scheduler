@@ -1,0 +1,536 @@
+<!DOCTYPE HTML>
+<html lang="pt-br" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Wiki do Projeto - Escalonador de Processos em Rust</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Wiki do Projeto - Escalonador de Processos em Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introdução"><a class="header" href="#introdução">Introdução</a></h1>
+<p>Bem-vindo à wiki do nosso simulador de escalonamento de processos, desenvolvido em Rust. Este projeto foi criado como parte da disciplina de Linguagens de Programação para explorar, na prática, os principais conceitos de gerenciamento de processos em sistemas operacionais.</p>
+<p>O simulador implementa e permite a comparação de diferentes algoritmos de escalonamento, como Round Robin, Por Prioridade e Shortest Job First (SJF), em um ambiente interativo. O objetivo principal não é apenas simular o comportamento de um sistema operacional, mas também avaliar a adequação da linguagem Rust para o desenvolvimento de software de sistema, analisando seus custos, confiabilidade e características de escrita e legibilidade.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="um-pouco-da-história"><a class="header" href="#um-pouco-da-história">Um pouco da História</a></h1>
+<p>Rust é uma linguagem de programação de sistemas moderna, iniciada como um projeto pessoal por Graydon Hoare na Mozilla Research em 2006. A primeira versão estável, Rust 1.0, foi lançada em 15 de maio de 2015.</p>
+<p>Seu desenvolvimento é focado em três pilares: segurança, velocidade e concorrência. A principal inovação do Rust é o sistema de posse (ownership), que, combinado com o verificador de empréstimo (borrow checker), garante a segurança de memória em tempo de compilação.</p>
+<p>A linguagem evolui através de "edições", que são lançadas a cada 2 ou 3 anos (2015, 2018, 2021) para introduzir novas funcionalidades sem quebrar o código antigo. Este projeto foi desenvolvido utilizando a edição 2021 e a versão estável mais recente do compilador Rust, garantindo acesso às últimas melhorias de sintaxe e desempenho.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="adequação-do-projeto-à-linguagem"><a class="header" href="#adequação-do-projeto-à-linguagem">Adequação do Projeto à Linguagem</a></h1>
+<ol>
+<li>
+<p>Gerenciamento Explícito de Recursos e Memória
+Nosso simulador gerencia um conjunto finito de recursos, como Impressora, Scanner e Memoria. A lógica de alocar e liberar esses recursos para os processos é um pilar central do sistema. O modelo de posse (ownership) do Rust, que dispensa um garbage collector, nos dá controle total e determinístico sobre o ciclo de vida dos recursos. Isso espelha com precisão como um sistema operacional real deve operar: com eficiência e previsibilidade, sem pausas inesperadas para limpeza de memória.</p>
+</li>
+<li>
+<p>Garantia de Correção e Estado Consistente
+Um processo transita por estados críticos (Pronto, Executando, Bloqueado). Um bug nessa lógica poderia corromper todo o sistema. O sistema de tipos forte de Rust, combinado com enums e o pattern matching exaustivo do match, nos força a tratar todos os estados possíveis em tempo de compilação. Isso previne uma classe inteira de bugs lógicos, garantindo que a máquina de estados do nosso escalonador seja robusta e correta por design.</p>
+</li>
+<li>
+<p>Segurança em Concorrência por Padrão
+O projeto simula múltiplos núcleos de CPU operando sobre uma fila de processos compartilhada. Em outras linguagens, isso seria um convite para data races (condições de corrida). Em Rust, o verificador de empréstimo (borrow checker) proíbe o acesso simultâneo e inseguro a dados compartilhados em tempo de compilação. Mesmo em uma simulação, essa garantia nos permite escrever uma lógica de concorrência sem medo, sabendo que a principal fonte de bugs em sistemas paralelos já foi eliminada pela própria linguagem.</p>
+</li>
+<li>
+<p>Desempenho com Abstrações de Alto NívelS
+Escalonadores de processos são componentes críticos de desempenho em um sistema. Rust nos permite escrever código de alto nível e expressivo — como usar iteradores para encontrar o próximo processo em escolher_proximo_processo() — com a garantia de que essas abstrações serão compiladas para um código de máquina extremamente rápido, comparável ao de C++. São as famosas abstrações de custo zero, que nos permitem escrever um código legível sem sacrificar a performance necessária para o domínio do problema.</p>
+</li>
+</ol>
+<p>Em suma, o nosso escalonador é um exemplo prático e direto dos problemas que Rust foi criado para resolver. Os desafios de gerenciamento de memória, estado, concorrência e desempenho são centrais tanto para o projeto quanto para a filosofia da linguagem.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="projeto-domínio-premissas-e-usuário"><a class="header" href="#projeto-domínio-premissas-e-usuário">Projeto: Domínio, Premissas e Usuário</a></h1>
+<h3 id="domínio"><a class="header" href="#domínio">Domínio:</a></h3>
+<p>O projeto está inserido no domínio de Sistemas Operacionais, especificamente na área de Gerenciamento de Processos e Recursos. Ele simula um escalonador que decide qual processo deve ser executado em um conjunto de núcleos de CPU, como e quando alocar recursos (memória, disco, etc.) e como tratar situações de bloqueio e preempção.</p>
+<h3 id="premissas"><a class="header" href="#premissas">Premissas:</a></h3>
+<p>Para manter o escopo gerenciável, o simulador opera sob as seguintes premissas:</p>
+<p>O tempo é simulado em unidades discretas (<code>tempo_global</code>).</p>
+<p>A concorrência é simulada: múltiplos núcleos operam em paralelo, mas a simulação em si é executada em uma única thread principal que gerencia o estado de todos os núcleos.</p>
+<p>Os processos são gerados automaticamente a uma taxa configurável ou adicionados manualmente pelo usuário.</p>
+<p>Os recursos são abstratos (ex: <code>Recurso::Impressora</code>) e sua alocação é binária (ou o processo obtém todos os recursos que precisa ou é bloqueado).</p>
+<h3 id="usuário"><a class="header" href="#usuário">Usuário:</a></h3>
+<p>O usuário alvo deste projeto é um estudante ou entusiasta de Sistemas Operacionais que deseja visualizar e entender o impacto de diferentes algoritmos de escalonamento. A interface interativa via linha de comando foi projetada para ser simples e informativa, permitindo configurar, executar, pausar e inspecionar o estado do sistema em tempo real.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fundamentos-de-escalonamento-de-processos"><a class="header" href="#fundamentos-de-escalonamento-de-processos">Fundamentos de Escalonamento de Processos</a></h1>
+<p>Para entender o funcionamento do nosso simulador, é crucial primeiro compreender os conceitos teóricos de sistemas operacionais que ele representa. Esta seção serve como um embasamento para a arquitetura e as decisões de implementação do projeto.</p>
+<h3 id="o-que-é-um-processo"><a class="header" href="#o-que-é-um-processo">O que é um Processo?</a></h3>
+<p>De forma simples, um processo é um programa em execução. Quando você abre um aplicativo, o sistema operacional cria um ou mais processos para executar o código daquele programa. Ele é a unidade fundamental de trabalho em um sistema operacional moderno.</p>
+<p>Para gerenciar cada processo, o sistema operacional mantém uma estrutura de dados chamada Bloco de Controle de Processo (PCB). O PCB armazena todas as informações vitais sobre o processo, como seu ID, prioridade, estado atual, contadores, e os recursos que ele está utilizando.</p>
+<ul>
+<li>Conexão com o Projeto: No nosso simulador, a struct Processo é a nossa versão simplificada de um PCB. Ela armazena os campos essenciais que nosso escalonador precisa para tomar suas decisões:</li>
+</ul>
+<pre><code>pub struct Processo {
+    pub id: u32,
+    pub prioridade: i32,
+    pub tempo_restante: u32,
+    pub estado: EstadoProcesso,
+    pub recursos_necessarios: HashMap&lt;Recurso, u32&gt;,
+}
+</code></pre>
+<h3 id="os-estados-de-um-processo"><a class="header" href="#os-estados-de-um-processo">Os Estados de um Processo</a></h3>
+<p>Um processo muda de estado ao longo de seu ciclo de vida. Os estados principais são:</p>
+<ul>
+<li>
+<p>Pronto (Ready): O processo está pronto para ser executado e aguarda na fila de processos prontos até que o escalonador o escolha para usar a CPU. No nosso código, são os processos na fila <code>sistema.processos</code>.</p>
+</li>
+<li>
+<p>Executando (Running): O processo está atualmente executando suas instruções em um núcleo de CPU. No nosso código, é um processo que foi atribuído a uma <code>struct Nucleo</code>.</p>
+</li>
+<li>
+<p>Bloqueado (Blocked): O processo não pode continuar executando porque está esperando por algum evento externo, como a liberação de um recurso (ex: impressora) ou uma operação de E/S. No nosso código, são os processos na fila <code>sistema.processos_bloqueados</code>.</p>
+</li>
+<li>
+<p>Concluído (Terminated): O processo terminou sua execução e seus recursos são liberados pelo sistema.</p>
+</li>
+</ul>
+<p>O fluxo típico é uma dança entre esses estados, gerenciada pelo escalonador.</p>
+<h4 id="pronto--executando--bloqueado--pronto"><a class="header" href="#pronto--executando--bloqueado--pronto">Pronto ➡️ Executando ➡️ Bloqueado ➡️ Pronto</a></h4>
+<h3 id="o-escalonador-scheduler"><a class="header" href="#o-escalonador-scheduler">O Escalonador (Scheduler)</a></h3>
+<p>O escalonador de CPU é o componente do sistema operacional responsável por decidir qual dos processos na fila de <code>Pronto</code> será o próximo a receber um núcleo de CPU. Essa decisão é a essência do gerenciamento de processos e é baseada em um algoritmo de escalonamento.</p>
+<h3 id="critérios-de-escalonamento"><a class="header" href="#critérios-de-escalonamento">Critérios de Escalonamento</a></h3>
+<p>Não existe um "melhor" algoritmo de escalonamento; cada um otimiza para diferentes objetivos. Os principais critérios para avaliar um algoritmo são:</p>
+<ul>
+<li>
+<p>Utilização da CPU: Manter a CPU o mais ocupada possível.</p>
+</li>
+<li>
+<p>Vazão (Throughput): O número de processos concluídos por unidade de tempo.</p>
+</li>
+<li>
+<p>Tempo de Resposta (Response Time): O tempo desde a submissão de um processo até ele começar a executar e produzir a primeira resposta.</p>
+</li>
+<li>
+<p>Tempo de Espera (Waiting Time): O tempo total que um processo passa na fila de <code>Pronto</code>.</p>
+</li>
+<li>
+<p>Justiça (Fairness): Garantir que todo processo receba uma porção justa de tempo de CPU, evitando que algum processo fique indefinidamente esperando (starvation).</p>
+</li>
+</ul>
+<h3 id="preempção-a-regra-do-jogo"><a class="header" href="#preempção-a-regra-do-jogo">Preempção: A Regra do Jogo</a></h3>
+<p>Os algoritmos de escalonamento se dividem em duas grandes categorias:</p>
+<ul>
+<li>
+<p>Não-Preemptivo: Uma vez que um processo recebe a CPU, ele a mantém até que termine sua execução ou a libere voluntariamente (por exemplo, ao solicitar um recurso e ficar bloqueado).</p>
+</li>
+<li>
+<p>Preemptivo: O sistema operacional pode forçar a retirada da CPU de um processo em execução para dá-la a outro, geralmente de maior prioridade. Isso é o que permite a multitarefa fluida em sistemas modernos. Pense nisso como um timer: quando o tempo acaba, o próximo da fila assume, independentemente de o anterior ter terminado.</p>
+</li>
+</ul>
+<p>Os algoritmos implementados em nosso simulador são preemptivos:</p>
+<ul>
+<li>
+<p>Round Robin: É o exemplo clássico de preempção baseada em tempo (quantum).</p>
+</li>
+<li>
+<p>Prioridade e Shortest Job First (SJF): Em nossa implementação, eles são preemptivos. Se um novo processo mais prioritário (ou mais curto, no caso do SJF) chega à fila de <code>Pronto</code>, ele pode tomar o lugar de um processo que está atualmente em execução.</p>
+</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="implementação-e-arquitetura"><a class="header" href="#implementação-e-arquitetura">Implementação e Arquitetura</a></h1>
+<h2 id="arquitetura-do-projeto"><a class="header" href="#arquitetura-do-projeto">Arquitetura do Projeto</a></h2>
+<p>O projeto foi organizado em módulos para garantir uma clara separação de responsabilidades, tornando o código mais fácil de entender, manter e testar. Cada arquivo tem um papel bem definido:</p>
+<h3 id="mainrs"><a class="header" href="#mainrs"><code>main.rs</code></a></h3>
+<p>É o ponto de entrada e a camada de interface com o usuário (UI). Ele é responsável por:</p>
+<ul>
+<li>Exibir o menu e capturar as configurações iniciais do sistema (núcleos, algoritmo).</li>
+<li>Gerenciar o laço principal da simulação interativa (main loop).</li>
+<li>Processar os comandos do usuário em tempo real (pausar, mostrar estatísticas, adicionar processo).</li>
+</ul>
+<h3 id="sistemars"><a class="header" href="#sistemars"><code>sistema.rs</code></a></h3>
+<p>É o coração do simulador, contendo toda a lógica de negócio e as regras do sistema operacional simulado. Suas responsabilidades incluem:</p>
+<ul>
+<li>Definir as estruturas de dados centrais: <code>Sistema</code>, <code>Processo</code>, <code>Nucleo</code>, e os enums <code>Recurso</code> e <code>EstadoProcesso</code>.</li>
+<li>Implementar a lógica do escalonador (<code>escalonar</code>), que move os processos entre os estados, aloca-os aos núcleos e gerencia o tempo.</li>
+<li>Controlar a alocação e liberação de recursos e a detecção de deadlock.</li>
+</ul>
+<h3 id="examplesrs"><a class="header" href="#examplesrs"><code>examples.rs</code></a></h3>
+<p>Este módulo serve como uma biblioteca de cenários de teste pré-configurados. Sua função é facilitar a demonstração e a verificação de diferentes comportamentos do sistema, como:</p>
+<ul>
+<li><code>exemplo_round_robin()</code>: Cria um sistema com processos para testar o algoritmo Round Robin.</li>
+<li><code>exemplo_deadlock()</code>: Configura um cenário específico com recursos limitados para forçar e testar a detecção de deadlock.</li>
+<li><code>exemplo_complexo()</code>: Monta um ambiente com múltiplos processos que demandam diferentes tipos de recursos.</li>
+</ul>
+<hr />
+<h2 id="construtores-da-linguagem-usados"><a class="header" href="#construtores-da-linguagem-usados">Construtores da Linguagem Usados</a></h2>
+<p>Construtores de linguagem são as ferramentas e os blocos de construção fundamentais que uma linguagem oferece para expressar lógica e estruturar dados. Eles incluem desde a forma como definimos tipos (como <code>structs</code>) até como controlamos o fluxo de um programa (<code>match</code>, <code>if</code>, etc).</p>
+<p>Neste projeto, utilizamos diversos construtores poderosos do Rust para escrever um código seguro, expressivo e eficiente.</p>
+<h3 id="structs-e-enums"><a class="header" href="#structs-e-enums">Structs e Enums</a></h3>
+<p>Esses são os pilares para a modelagem de dados do nosso domínio.</p>
+<h4 id="structs"><a class="header" href="#structs">Structs</a></h4>
+<p>Permitem agrupar diferentes dados em uma única unidade lógica. A struct <code>Processo</code> é um exemplo perfeito, encapsulando todas as informações de um processo.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+#[derive(Debug, Clone)]
+pub struct Processo {
+    pub id: u32,
+    pub prioridade: i32,
+    pub tempo_total: u32,
+    pub tempo_restante: u32,
+    // ... outros campos
+}
+<span class="boring">}</span></code></pre></pre>
+<h4 id="enums"><a class="header" href="#enums">Enums</a></h4>
+<p>Permitem definir um tipo que pode ser um de vários valores possíveis. O <code>AlgoritmoEscalonamento</code> garante que apenas algoritmos válidos possam ser usados. Além disso, Rust permite que enums contenham dados, como visto em <code>Recurso</code>, tornando o tipo ainda mais poderoso.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Recurso {
+    Impressora,
+    Scanner,
+    Disco,
+    Memoria(u32), // Este enum contém um dado!
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="ownership-e-borrowing"><a class="header" href="#ownership-e-borrowing">Ownership e Borrowing</a></h3>
+<p>Este é o sistema que garante a segurança de memória em Rust.</p>
+<ul>
+<li><strong>Ownership (Posse):</strong> Cada valor em Rust tem uma "dona". Quando um processo é criado e adicionado ao sistema, a posse dele é movida para a fila de processos, garantindo que haja apenas um responsável por aquele dado.</li>
+<li><strong>Borrowing (Empréstimo):</strong> Para usar um dado sem tomar posse, nós o "emprestamos". A função <code>escalonar</code> pega emprestado uma referência mutável ao <code>Sistema</code> (<code>&amp;mut self</code>), permitindo que ela modifique o sistema de forma segura.</li>
+</ul>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+impl Sistema {
+    pub fn escalonar(&amp;mut self) {
+        // O uso de `&amp;mut self` permite que este método
+        // modifique os campos do Sistema (processos, núcleos, etc).
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="pattern-matching-match"><a class="header" href="#pattern-matching-match">Pattern Matching (<code>match</code>)</a></h3>
+<p>É uma forma poderosa de controlar o fluxo do programa com base em padrões. O <code>match</code> é exaustivo, o que significa que o compilador nos obriga a tratar todas as possibilidades, prevenindo bugs.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em main.rs
+fn escolher_algoritmo() -&gt; AlgoritmoEscalonamento {
+    loop {
+        match escolha {
+            1 =&gt; return AlgoritmoEscalonamento::RoundRobin,
+            2 =&gt; return AlgoritmoEscalonamento::Prioridade,
+            3 =&gt; return AlgoritmoEscalonamento::ShortestJobFirst,
+            _ =&gt; println!("Opção inválida!"), // Trata todos os outros casos
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="coleções-padrão"><a class="header" href="#coleções-padrão">Coleções Padrão</a></h3>
+<p>Rust oferece um conjunto rico de estruturas de dados na sua biblioteca padrão.</p>
+<ul>
+<li><code>VecDeque</code>: Uma fila de duas pontas, usada aqui como uma fila FIFO (First-In, First-Out) para a nossa fila de processos prontos.</li>
+<li><code>HashMap</code>: Usado para armazenar os recursos disponíveis, mapeando cada <code>Recurso</code> para a sua quantidade (<code>u32</code>).</li>
+</ul>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs, na struct Sistema
+pub struct Sistema {
+    pub processos: VecDeque&lt;Processo&gt;,
+    pub recursos_disponiveis: HashMap&lt;Recurso, u32&gt;,
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="traits"><a class="header" href="#traits">Traits</a></h3>
+<p>Traits são como interfaces em outras linguagens. Eles definem um conjunto de métodos que um tipo deve implementar para ter um determinado comportamento. Usamos traits da biblioteca padrão para estender nossos tipos.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+use std::fmt;
+
+impl fmt::Display for AlgoritmoEscalonamento {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
+        match self {
+            AlgoritmoEscalonamento::RoundRobin =&gt; write!(f, "Round Robin"),
+            // ...
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="gerenciamento-de-erros-com-result-e-option"><a class="header" href="#gerenciamento-de-erros-com-result-e-option">Gerenciamento de Erros com <code>Result</code> e <code>Option</code></a></h3>
+<p>Rust não usa exceções. Em vez disso, operações que podem falhar retornam um enum <code>Result&lt;T, E&gt;</code> (sucesso ou erro) ou <code>Option&lt;T&gt;</code> (um valor ou nenhum).</p>
+<p>No nosso código, a função de leitura lida com a possibilidade de o usuário digitar algo inválido. A função <code>parse()</code> retorna um <code>Result</code>, e tratamos isso com <code>if let</code>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em main.rs
+if let Ok(valor) = input.parse::&lt;usize&gt;() {
+    if valor &gt;= min &amp;&amp; valor &lt;= max {
+        return valor;
+    }
+}
+// Se o parse falhar (retornar Err), o bloco é ignorado
+<span class="boring">}</span></code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="análise-aprofundada-da-linguagem-rust"><a class="header" href="#análise-aprofundada-da-linguagem-rust">Análise Aprofundada da Linguagem Rust</a></h1>
+<p>Avaliar uma linguagem de programação vai além da simples análise de sua sintaxe. Envolve examinar sua filosofia, pontos fortes e fracos, e como ela se comporta em cenários reais. Para o nosso simulador de escalonamento, um projeto inserido no domínio de sistemas operacionais, a escolha da linguagem Rust se mostra não apenas adequada, mas altamente vantajosa, especialmente quando comparada à sua antecessora, a linguagem C.</p>
+<hr />
+<h3 id="1-legibilidade-readability"><a class="header" href="#1-legibilidade-readability">1. Legibilidade (Readability)</a></h3>
+<p>A legibilidade refere-se à facilidade com que um ser humano consegue compreender o que um trecho de código realiza. Trata-se de um dos fatores mais críticos para a manutenção a longo prazo de qualquer software.</p>
+<p>A sintaxe do Rust é, à primeira vista, mais verbosa do que a do C. Palavras-chave como <code>fn</code>, <code>let mut</code> e <code>match</code> tornam o código mais extenso, mas essa verbosidade é uma escolha deliberada de design em favor da explicitude. Enquanto em C a declaração <code>int *p;</code> pode ser ambígua quanto à intenção, em Rust a distinção entre <code>let p: &amp;i32</code> (referência imutável) e <code>let p: &amp;mut i32</code> (referência mutável) torna o propósito inequívoco.</p>
+<p>No projeto, a declaração da <code>struct Processo</code> é auto-contida e clara. Em C, a mesma estrutura poderia ter sua definição em um arquivo <code>.c</code> e suas declarações espalhadas por arquivos de cabeçalho (<code>.h</code>), dificultando a compreensão da abstração como um todo.</p>
+<p>Rust também se destaca nas instruções de controle. O <code>match</code> representa uma evolução significativa em relação ao <code>switch</code> do C, por ser exaustivo (o compilador exige que todos os casos sejam tratados) e por eliminar o perigoso comportamento de <em>fall-through</em>, comum fonte de erros. A função <code>escolher_algoritmo()</code> é um excelente exemplo de como <code>match</code> contribui para uma lógica clara, segura e legível.</p>
+<p>O principal ponto de atrito, especialmente para iniciantes, reside na sintaxe de posse e empréstimo (<code>&amp;</code>, <code>&amp;mut</code>) e nos tempos de vida (<code>'a</code>). Contudo, para programadores experientes, esses elementos representam uma camada informacional valiosa, tornando explícitas as regras de gerenciamento de memória que, em C, são meramente convencionais e implícitas.</p>
+<hr />
+<h3 id="2-capacidade-de-escrita-writability"><a class="header" href="#2-capacidade-de-escrita-writability">2. Capacidade de Escrita (Writability)</a></h3>
+<p>A capacidade de escrita refere-se à facilidade com que um programador consegue traduzir uma ideia em código funcional e correto.</p>
+<p>Rust oferece mecanismos de abstração superiores aos do C padrão. Os <code>traits</code> constituem um sistema de interfaces poderoso que viabiliza o polimorfismo ad-hoc. No projeto, ao implementarmos o <code>trait Display</code> para o enum <code>AlgoritmoEscalonamento</code>, tornamos possível formatar instâncias desse tipo como strings de forma elegante. Em C, atingir esse mesmo efeito requereria funções auxiliares manuais e menos integradas ao sistema de tipos.</p>
+<p>A expressividade do Rust é, possivelmente, seu maior trunfo na capacidade de escrita. A função <code>escolher_proximo_processo</code> ilustra bem esse ponto. A lógica "encontre o processo com maior prioridade" é escrita em uma única linha clara:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>self.processos.iter().max_by_key(|p| p.prioridade)
+<span class="boring">}</span></code></pre></pre>
+<p>Em C, isso exigiria um laço <code>for</code>, variáveis auxiliares para armazenar o valor máximo e ponteiros, aumentando a complexidade e o risco de erros.</p>
+<hr />
+<h3 id="3-confiabilidade-reliability"><a class="header" href="#3-confiabilidade-reliability">3. Confiabilidade (Reliability)</a></h3>
+<p>A confiabilidade é a capacidade de um programa funcionar conforme o esperado, sem falhas ou comportamentos indefinidos. Nesse aspecto, Rust diverge profundamente do C, oferecendo um nível de segurança significativamente superior.</p>
+<p>O pilar central é a <strong>segurança de memória garantida em tempo de compilação</strong>. Em C, o programador é responsável pelo uso de <code>malloc()</code> e <code>free()</code>, o que frequentemente leva a erros como <em>use-after-free</em>, <em>double-free</em> e <em>buffer overflows</em>. Rust elimina completamente essa categoria de falhas. No projeto, quando um <code>Processo</code> é inserido no <code>VecDeque</code>, sua posse é transferida. Quando esse vetor é descartado, o compilador garante a liberação correta da memória.</p>
+<p>Em contraste, em C seria necessário iterar sobre a estrutura e liberar manualmente cada item com <code>free()</code>, um processo suscetível a esquecimentos e vazamentos de memória.</p>
+<p>Outro aspecto crucial é o tratamento de erros. C tradicionalmente depende de convenções como retornar <code>-1</code> ou <code>NULL</code>, que podem ser ignoradas. Rust, com os tipos <code>Result&lt;T, E&gt;</code> e <code>Option&lt;T&gt;</code>, força o programador a tratar explicitamente as falhas. A função <code>ler_entrada_usize</code> exemplifica esse comportamento: se o usuário digitar "abc", o programa lida com o erro de forma segura, sem falhas ou comportamentos inesperados.</p>
+<hr />
+<h3 id="4-custo-total-de-propriedade"><a class="header" href="#4-custo-total-de-propriedade">4. Custo Total de Propriedade</a></h3>
+<p>O custo de uma linguagem deve ser avaliado ao longo de todo o ciclo de vida do software.</p>
+<ul>
+<li><strong>Custo de treinamento:</strong> Rust possui uma curva de aprendizado mais íngreme que C, especialmente devido ao sistema de posse e empréstimos. Contudo, aprender a evitar armadilhas comuns em C também exige um esforço substancial.</li>
+<li><strong>Custo de escrita:</strong> O tempo necessário para convencer o compilador de Rust da segurança do código é maior no início, mas evita horas de depuração posteriores.</li>
+<li><strong>Custo de compilação:</strong> Rust possui um compilador robusto e detalhado, que realiza verificações pesadas. Isso pode resultar em tempos de compilação mais longos, mas com um retorno em confiabilidade.</li>
+<li><strong>Custo de execução:</strong> O desempenho em tempo de execução é comparável ao de C, frequentemente com resultados excelentes, devido à ausência de <em>garbage collector</em> e à otimização agressiva.</li>
+<li><strong>Custo de manutenção:</strong> Rust se destaca. A forte tipagem, ausência de <em>null pointers</em>, e o sistema de empréstimos impedem classes inteiras de bugs. Alterações no código são mais seguras, reduzindo custos com correções e retrabalho.</li>
+</ul>
+<hr />
+<h3 id="5-ecossistema-e-ferramental-ecosystem-and-tooling"><a class="header" href="#5-ecossistema-e-ferramental-ecosystem-and-tooling">5. Ecossistema e Ferramental (Ecosystem and Tooling)</a></h3>
+<p>Esse critério é fundamental em avaliações modernas. Rust oferece um ecossistema altamente produtivo.</p>
+<ul>
+<li><strong>Cargo:</strong> Gerenciador de pacotes e sistema de build unificado. Com comandos como <code>cargo run</code>, <code>cargo test</code> e <code>cargo build</code>, é possível automatizar tarefas que, em C, exigem <code>Makefile</code> ou <code>CMake</code>.</li>
+<li><strong>Clippy:</strong> Ferramenta de análise estática que oferece sugestões de estilo, performance e segurança.</li>
+<li><strong>rust-analyzer:</strong> Proporciona autocompletar, refatorações e feedback em tempo real nas principais IDEs.</li>
+<li><strong>cargo doc:</strong> Gera documentação rica automaticamente a partir dos comentários do código, superando ferramentas tradicionais como Doxygen.</li>
+</ul>
+<p>Juntas, essas ferramentas elevam a produtividade e profissionalismo do desenvolvimento em Rust, tornando-o uma escolha moderna e segura para projetos de sistemas.</p>
+<hr />
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
