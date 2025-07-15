@@ -445,3 +445,206 @@ impl Sistema {
         self.escalonar();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_processo_new() {
+        let processo = Processo::new(1, 100, 5);
+        
+        assert_eq!(processo.id, 1);
+        assert_eq!(processo.prioridade, 5);
+        assert_eq!(processo.tempo_total, 100);
+        assert_eq!(processo.tempo_restante, 100);
+        assert_eq!(processo.tempo_chegada, 0);
+        assert_eq!(processo.estado, EstadoProcesso::Pronto);
+        assert!(processo.recursos_alocados.is_empty());
+        assert!(processo.recursos_necessarios.is_empty());
+    }
+
+    #[test]
+    fn test_processo_necessita_recurso() {
+        let processo = Processo::new(1, 100, 5)
+            .necessita_recurso(Recurso::Impressora, 1)
+            .necessita_recurso(Recurso::Memoria(256), 2);
+        
+        assert_eq!(processo.recursos_necessarios.get(&Recurso::Impressora), Some(&1));
+        assert_eq!(processo.recursos_necessarios.get(&Recurso::Memoria(256)), Some(&2));
+        assert_eq!(processo.recursos_necessarios.len(), 2);
+    }
+
+    #[test]
+    fn test_nucleo_new() {
+        let nucleo = Nucleo::new(0);
+        
+        assert_eq!(nucleo.id, 0);
+        assert!(nucleo.processo_atual.is_none());
+        assert_eq!(nucleo.tempo_ocioso, 0);
+    }
+
+    #[test]
+    fn test_sistema_new() {
+        let sistema = Sistema::new(4, 10, AlgoritmoEscalonamento::RoundRobin);
+        
+        assert_eq!(sistema.nucleos.len(), 4);
+        assert_eq!(sistema.quantum, 10);
+        assert_eq!(sistema.algoritmo, AlgoritmoEscalonamento::RoundRobin);
+        assert_eq!(sistema.tempo_global, 0);
+        assert_eq!(sistema.taxa_chegada_processos, 20);
+        assert!(sistema.processos.is_empty());
+        assert!(sistema.processos_bloqueados.is_empty());
+        
+        // Verificar recursos iniciais
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Impressora), Some(&2));
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Scanner), Some(&1));
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Disco), Some(&3));
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Memoria(1024)), Some(&8));
+    }
+
+    #[test]
+    fn test_adicionar_processo() {
+        let mut sistema = Sistema::new(2, 5, AlgoritmoEscalonamento::RoundRobin);
+        let processo = Processo::new(1, 50, 3);
+        
+        sistema.adicionar_processo(processo);
+        
+        assert_eq!(sistema.processos.len(), 1);
+        assert_eq!(sistema.processos[0].id, 1);
+        assert_eq!(sistema.processos[0].estado, EstadoProcesso::Pronto);
+    }
+
+    #[test]
+    fn test_escolher_proximo_processo_round_robin() {
+        let mut sistema = Sistema::new(1, 5, AlgoritmoEscalonamento::RoundRobin);
+        
+        let processo1 = Processo::new(1, 30, 1);
+        let processo2 = Processo::new(2, 20, 5);
+        let processo3 = Processo::new(3, 40, 3);
+        
+        sistema.adicionar_processo(processo1);
+        sistema.adicionar_processo(processo2);
+        sistema.adicionar_processo(processo3);
+        
+        let proximo = sistema.escolher_proximo_processo();
+        assert_eq!(proximo.unwrap().id, 1); // Primeiro da fila
+    }
+
+    #[test]
+    fn test_escolher_proximo_processo_prioridade() {
+        let mut sistema = Sistema::new(1, 5, AlgoritmoEscalonamento::Prioridade);
+        
+        let processo1 = Processo::new(1, 30, 1);
+        let processo2 = Processo::new(2, 20, 5);
+        let processo3 = Processo::new(3, 40, 3);
+        
+        sistema.adicionar_processo(processo1);
+        sistema.adicionar_processo(processo2);
+        sistema.adicionar_processo(processo3);
+        
+        let proximo = sistema.escolher_proximo_processo();
+        assert_eq!(proximo.unwrap().id, 2); // Maior prioridade (5)
+    }
+
+    #[test]
+    fn test_escolher_proximo_processo_shortest_job_first() {
+        let mut sistema = Sistema::new(1, 5, AlgoritmoEscalonamento::ShortestJobFirst);
+        
+        let processo1 = Processo::new(1, 30, 1);
+        let processo2 = Processo::new(2, 20, 5);
+        let processo3 = Processo::new(3, 40, 3);
+        
+        sistema.adicionar_processo(processo1);
+        sistema.adicionar_processo(processo2);
+        sistema.adicionar_processo(processo3);
+        
+        let proximo = sistema.escolher_proximo_processo();
+        assert_eq!(proximo.unwrap().id, 2); // Menor tempo restante (20)
+    }
+
+    #[test]
+    fn test_pode_alocar_recursos_insuficientes() {
+        let sistema = Sistema::new(2, 5, AlgoritmoEscalonamento::RoundRobin);
+        let processo = Processo::new(1, 50, 3)
+            .necessita_recurso(Recurso::Impressora, 3) // Só tem 2 disponíveis
+            .necessita_recurso(Recurso::Memoria(512), 4);
+        
+        assert!(!sistema.pode_alocar_recursos(&processo));
+    }
+
+    #[test]
+    fn test_alocar_recursos_sucesso() {
+        let mut sistema = Sistema::new(2, 5, AlgoritmoEscalonamento::RoundRobin);
+        let processo = Processo::new(1, 50, 3)
+            .necessita_recurso(Recurso::Impressora, 1)
+            .necessita_recurso(Recurso::Memoria(1024), 2);
+        
+        let resultado = sistema.alocar_recursos(&processo);
+        assert!(resultado);
+        
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Impressora), Some(&1));
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Memoria(1024)), Some(&6));
+    }
+
+    #[test]
+    fn test_alocar_recursos_falha() {
+        let mut sistema = Sistema::new(2, 5, AlgoritmoEscalonamento::RoundRobin);
+        let processo = Processo::new(1, 50, 3)
+            .necessita_recurso(Recurso::Impressora, 5) // Mais que disponível
+            .necessita_recurso(Recurso::Memoria(1024), 2);
+        
+        let resultado = sistema.alocar_recursos(&processo);
+        assert!(!resultado);
+        
+        // Recursos devem permanecer inalterados
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Impressora), Some(&2));
+        assert_eq!(sistema.recursos_disponiveis.get(&Recurso::Memoria(1024)), Some(&8));
+    }
+
+    #[test]
+    fn test_escalonar_multiplos_processos() {
+        let mut sistema = Sistema::new(2, 5, AlgoritmoEscalonamento::RoundRobin);
+        
+        let processo1 = Processo::new(1, 3, 1);
+        let processo2 = Processo::new(2, 2, 2);
+        let processo3 = Processo::new(3, 4, 3);
+        
+        sistema.adicionar_processo(processo1);
+        sistema.adicionar_processo(processo2);
+        sistema.adicionar_processo(processo3);
+        
+        // Primeiro passo: dois processos devem ser atribuídos aos dois núcleos
+        sistema.escalonar();
+        
+        let nucleos_ocupados = sistema.nucleos.iter()
+            .filter(|n| n.processo_atual.is_some())
+            .count();
+        assert_eq!(nucleos_ocupados, 2);
+        assert_eq!(sistema.processos.len(), 1); // Um processo ainda na fila
+    }
+
+    #[test]
+    fn test_preempcao_round_robin() {
+        let mut sistema = Sistema::new(1, 2, AlgoritmoEscalonamento::RoundRobin); // Quantum 2
+        
+        let processo1 = Processo::new(1, 5, 1);
+        let processo2 = Processo::new(2, 3, 2);
+        
+        sistema.adicionar_processo(processo1);
+        sistema.adicionar_processo(processo2);
+        
+        // Primeiro processo executa
+        sistema.escalonar();
+        assert_eq!(sistema.nucleos[0].processo_atual.as_ref().unwrap().id, 1);
+        
+        // Segundo passo - ainda processo 1
+        sistema.escalonar();
+        assert_eq!(sistema.nucleos[0].processo_atual.as_ref().unwrap().id, 1);
+        
+        // Terceiro passo - deve haver preempção (quantum = 2)
+        sistema.escalonar();
+        assert_eq!(sistema.nucleos[0].processo_atual.as_ref().unwrap().id, 2);
+    }
+
+}
