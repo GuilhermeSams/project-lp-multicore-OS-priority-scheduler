@@ -1,0 +1,384 @@
+<!DOCTYPE HTML>
+<html lang="pt-br" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Implementação e Arquitetura - Wiki do Projeto - Escalonador de Processos em Rust</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Wiki do Projeto - Escalonador de Processos em Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="implementação-e-arquitetura"><a class="header" href="#implementação-e-arquitetura">Implementação e Arquitetura</a></h1>
+<h2 id="arquitetura-do-projeto"><a class="header" href="#arquitetura-do-projeto">Arquitetura do Projeto</a></h2>
+<p>O projeto foi organizado em módulos para garantir uma clara separação de responsabilidades, tornando o código mais fácil de entender, manter e testar. Cada arquivo tem um papel bem definido:</p>
+<h3 id="mainrs"><a class="header" href="#mainrs"><code>main.rs</code></a></h3>
+<p>É o ponto de entrada e a camada de interface com o usuário (UI). Ele é responsável por:</p>
+<ul>
+<li>Exibir o menu e capturar as configurações iniciais do sistema (núcleos, algoritmo).</li>
+<li>Gerenciar o laço principal da simulação interativa (main loop).</li>
+<li>Processar os comandos do usuário em tempo real (pausar, mostrar estatísticas, adicionar processo).</li>
+</ul>
+<h3 id="sistemars"><a class="header" href="#sistemars"><code>sistema.rs</code></a></h3>
+<p>É o coração do simulador, contendo toda a lógica de negócio e as regras do sistema operacional simulado. Suas responsabilidades incluem:</p>
+<ul>
+<li>Definir as estruturas de dados centrais: <code>Sistema</code>, <code>Processo</code>, <code>Nucleo</code>, e os enums <code>Recurso</code> e <code>EstadoProcesso</code>.</li>
+<li>Implementar a lógica do escalonador (<code>escalonar</code>), que move os processos entre os estados, aloca-os aos núcleos e gerencia o tempo.</li>
+<li>Controlar a alocação e liberação de recursos e a detecção de deadlock.</li>
+</ul>
+<h3 id="examplesrs"><a class="header" href="#examplesrs"><code>examples.rs</code></a></h3>
+<p>Este módulo serve como uma biblioteca de cenários de teste pré-configurados. Sua função é facilitar a demonstração e a verificação de diferentes comportamentos do sistema, como:</p>
+<ul>
+<li><code>exemplo_round_robin()</code>: Cria um sistema com processos para testar o algoritmo Round Robin.</li>
+<li><code>exemplo_deadlock()</code>: Configura um cenário específico com recursos limitados para forçar e testar a detecção de deadlock.</li>
+<li><code>exemplo_complexo()</code>: Monta um ambiente com múltiplos processos que demandam diferentes tipos de recursos.</li>
+</ul>
+<hr />
+<h2 id="construtores-da-linguagem-usados"><a class="header" href="#construtores-da-linguagem-usados">Construtores da Linguagem Usados</a></h2>
+<p>Construtores de linguagem são as ferramentas e os blocos de construção fundamentais que uma linguagem oferece para expressar lógica e estruturar dados. Eles incluem desde a forma como definimos tipos (como <code>structs</code>) até como controlamos o fluxo de um programa (<code>match</code>, <code>if</code>, etc).</p>
+<p>Neste projeto, utilizamos diversos construtores poderosos do Rust para escrever um código seguro, expressivo e eficiente.</p>
+<h3 id="structs-e-enums"><a class="header" href="#structs-e-enums">Structs e Enums</a></h3>
+<p>Esses são os pilares para a modelagem de dados do nosso domínio.</p>
+<h4 id="structs"><a class="header" href="#structs">Structs</a></h4>
+<p>Permitem agrupar diferentes dados em uma única unidade lógica. A struct <code>Processo</code> é um exemplo perfeito, encapsulando todas as informações de um processo.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+#[derive(Debug, Clone)]
+pub struct Processo {
+    pub id: u32,
+    pub prioridade: i32,
+    pub tempo_total: u32,
+    pub tempo_restante: u32,
+    // ... outros campos
+}
+<span class="boring">}</span></code></pre></pre>
+<h4 id="enums"><a class="header" href="#enums">Enums</a></h4>
+<p>Permitem definir um tipo que pode ser um de vários valores possíveis. O <code>AlgoritmoEscalonamento</code> garante que apenas algoritmos válidos possam ser usados. Além disso, Rust permite que enums contenham dados, como visto em <code>Recurso</code>, tornando o tipo ainda mais poderoso.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Recurso {
+    Impressora,
+    Scanner,
+    Disco,
+    Memoria(u32), // Este enum contém um dado!
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="ownership-e-borrowing"><a class="header" href="#ownership-e-borrowing">Ownership e Borrowing</a></h3>
+<p>Este é o sistema que garante a segurança de memória em Rust.</p>
+<ul>
+<li><strong>Ownership (Posse):</strong> Cada valor em Rust tem uma "dona". Quando um processo é criado e adicionado ao sistema, a posse dele é movida para a fila de processos, garantindo que haja apenas um responsável por aquele dado.</li>
+<li><strong>Borrowing (Empréstimo):</strong> Para usar um dado sem tomar posse, nós o "emprestamos". A função <code>escalonar</code> pega emprestado uma referência mutável ao <code>Sistema</code> (<code>&amp;mut self</code>), permitindo que ela modifique o sistema de forma segura.</li>
+</ul>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+impl Sistema {
+    pub fn escalonar(&amp;mut self) {
+        // O uso de `&amp;mut self` permite que este método
+        // modifique os campos do Sistema (processos, núcleos, etc).
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="pattern-matching-match"><a class="header" href="#pattern-matching-match">Pattern Matching (<code>match</code>)</a></h3>
+<p>É uma forma poderosa de controlar o fluxo do programa com base em padrões. O <code>match</code> é exaustivo, o que significa que o compilador nos obriga a tratar todas as possibilidades, prevenindo bugs.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em main.rs
+fn escolher_algoritmo() -&gt; AlgoritmoEscalonamento {
+    loop {
+        match escolha {
+            1 =&gt; return AlgoritmoEscalonamento::RoundRobin,
+            2 =&gt; return AlgoritmoEscalonamento::Prioridade,
+            3 =&gt; return AlgoritmoEscalonamento::ShortestJobFirst,
+            _ =&gt; println!("Opção inválida!"), // Trata todos os outros casos
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="coleções-padrão"><a class="header" href="#coleções-padrão">Coleções Padrão</a></h3>
+<p>Rust oferece um conjunto rico de estruturas de dados na sua biblioteca padrão.</p>
+<ul>
+<li><code>VecDeque</code>: Uma fila de duas pontas, usada aqui como uma fila FIFO (First-In, First-Out) para a nossa fila de processos prontos.</li>
+<li><code>HashMap</code>: Usado para armazenar os recursos disponíveis, mapeando cada <code>Recurso</code> para a sua quantidade (<code>u32</code>).</li>
+</ul>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs, na struct Sistema
+pub struct Sistema {
+    pub processos: VecDeque&lt;Processo&gt;,
+    pub recursos_disponiveis: HashMap&lt;Recurso, u32&gt;,
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="traits"><a class="header" href="#traits">Traits</a></h3>
+<p>Traits são como interfaces em outras linguagens. Eles definem um conjunto de métodos que um tipo deve implementar para ter um determinado comportamento. Usamos traits da biblioteca padrão para estender nossos tipos.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em sistema.rs
+use std::fmt;
+
+impl fmt::Display for AlgoritmoEscalonamento {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
+        match self {
+            AlgoritmoEscalonamento::RoundRobin =&gt; write!(f, "Round Robin"),
+            // ...
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h3 id="gerenciamento-de-erros-com-result-e-option"><a class="header" href="#gerenciamento-de-erros-com-result-e-option">Gerenciamento de Erros com <code>Result</code> e <code>Option</code></a></h3>
+<p>Rust não usa exceções. Em vez disso, operações que podem falhar retornam um enum <code>Result&lt;T, E&gt;</code> (sucesso ou erro) ou <code>Option&lt;T&gt;</code> (um valor ou nenhum).</p>
+<p>No nosso código, a função de leitura lida com a possibilidade de o usuário digitar algo inválido. A função <code>parse()</code> retorna um <code>Result</code>, e tratamos isso com <code>if let</code>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Em main.rs
+if let Ok(valor) = input.parse::&lt;usize&gt;() {
+    if valor &gt;= min &amp;&amp; valor &lt;= max {
+        return valor;
+    }
+}
+// Se o parse falhar (retornar Err), o bloco é ignorado
+<span class="boring">}</span></code></pre></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="04-conceitos-teoricos.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="06-analise-linguagem.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="04-conceitos-teoricos.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="06-analise-linguagem.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

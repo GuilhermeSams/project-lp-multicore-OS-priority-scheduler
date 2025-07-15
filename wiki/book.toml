@@ -1,0 +1,5 @@
+[book]
+authors = ["LdSaGL"]
+language = "pt-br"
+src = "src"
+title = "Wiki do Projeto - Escalonador de Processos em Rust"
